@@ -1,0 +1,4 @@
+{"explanation": "The threshold comparison should be inclusive.",
+ "edits": [{"path": "shop/pricing.py",
+            "search": "    if quantity > BULK_THRESHOLD:  # BUG: should be >=, exactly 10 units must be discounted",
+            "replace": "    if quantity >= BULK_THRESHOLD:"}]}

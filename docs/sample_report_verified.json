@@ -1,0 +1,335 @@
+{
+  "tool": "RECON",
+  "version": "0.1.0",
+  "status": "VERIFIED",
+  "reasons": [],
+  "disclaimer": "Passing tests are evidence that the reported behaviour was fixed and that existing tests still pass. They are not a mathematical proof of correctness.",
+  "project": "examples/buggy_shop",
+  "model": "offline-fixtures",
+  "bug_report": "# Bulk discount is not applied at exactly 10 units\n\nThe docs for `line_total` say that orders of 10 or more units get a 10% bulk discount.\nBut `line_total(10.0, 10)` returns 100.0 instead of 90.0. Orders of 11+ units are discounted correctly.",
+  "checks": {
+    "baseline_failure_established": true,
+    "patch_valid": true,
+    "tests_untampered": true,
+    "repro_passes_after_patch": true,
+    "repro_stable_across_reruns": true,
+    "existing_regressions": [],
+    "existing_tests_ok": true,
+    "existing_tests_present": true
+  },
+  "baseline": {
+    "existing_tests": {
+      "label": "baseline_existing",
+      "outcome": "PASSED",
+      "exit_code": 0,
+      "duration_s": 0.267,
+      "counts": {
+        "passed": 4
+      },
+      "failed_tests": [],
+      "output_tail": "....                                                                     [100%]\n4 passed in 0.01s\n",
+      "command": [
+        "/usr/bin/python3",
+        "-m",
+        "pytest",
+        "-q",
+        "--no-header",
+        "--color=no",
+        "--tb=short",
+        "-p",
+        "no:cacheprovider",
+        "-o",
+        "junit_family=xunit2",
+        "--junitxml=/tmp/recon_run_2ywr46e6/junit.xml",
+        "--ignore=recon_generated"
+      ]
+    },
+    "repro_runs": [
+      {
+        "label": "baseline_repro_1",
+        "outcome": "FAILED",
+        "exit_code": 1,
+        "duration_s": 0.267,
+        "counts": {
+          "failed": 1
+        },
+        "failed_tests": [
+          "recon_generated.test_recon_repro::test_exactly_ten_units_get_bulk_discount"
+        ],
+        "output_tail": "F                                                                        [100%]\n=================================== FAILURES ===================================\n___________________ test_exactly_ten_units_get_bulk_discount ___________________\nrecon_generated/test_recon_repro.py:5: in test_exactly_ten_units_get_bulk_discount\n    assert line_total(10.0, 10) == 90.0\nE   assert 100.0 == 90.0\nE    +  where 100.0 = line_total(10.0, 10)\n=========================== short test summary info ============================\nFAILED recon_generated/test_recon_repro.py::test_exactly_ten_units_get_bulk_discount\n1 failed in 0.01s\n",
+        "command": [
+          "/usr/bin/python3",
+          "-m",
+          "pytest",
+          "-q",
+          "--no-header",
+          "--color=no",
+          "--tb=short",
+          "-p",
+          "no:cacheprovider",
+          "-o",
+          "junit_family=xunit2",
+          "--junitxml=/tmp/recon_run_xuphs_he/junit.xml",
+          "recon_generated/test_recon_repro.py"
+        ]
+      },
+      {
+        "label": "baseline_repro_2",
+        "outcome": "FAILED",
+        "exit_code": 1,
+        "duration_s": 0.217,
+        "counts": {
+          "failed": 1
+        },
+        "failed_tests": [
+          "recon_generated.test_recon_repro::test_exactly_ten_units_get_bulk_discount"
+        ],
+        "output_tail": "F                                                                        [100%]\n=================================== FAILURES ===================================\n___________________ test_exactly_ten_units_get_bulk_discount ___________________\nrecon_generated/test_recon_repro.py:5: in test_exactly_ten_units_get_bulk_discount\n    assert line_total(10.0, 10) == 90.0\nE   assert 100.0 == 90.0\nE    +  where 100.0 = line_total(10.0, 10)\n=========================== short test summary info ============================\nFAILED recon_generated/test_recon_repro.py::test_exactly_ten_units_get_bulk_discount\n1 failed in 0.01s\n",
+        "command": [
+          "/usr/bin/python3",
+          "-m",
+          "pytest",
+          "-q",
+          "--no-header",
+          "--color=no",
+          "--tb=short",
+          "-p",
+          "no:cacheprovider",
+          "-o",
+          "junit_family=xunit2",
+          "--junitxml=/tmp/recon_run_v4yoxrhb/junit.xml",
+          "recon_generated/test_recon_repro.py"
+        ]
+      }
+    ],
+    "notes": []
+  },
+  "patch": {
+    "attempts": [
+      {
+        "attempt": 1,
+        "explanation": "The threshold comparison should be inclusive.",
+        "patch_error": null,
+        "status": "VERIFIED",
+        "reasons": [],
+        "changed_files": [
+          "shop/pricing.py"
+        ],
+        "diff": "--- a/shop/pricing.py\n+++ b/shop/pricing.py\n@@ -12,7 +12,7 @@\n     if quantity < 0:\n         raise ValueError(\"quantity must not be negative\")\n     total = unit_price * quantity\n-    if quantity > BULK_THRESHOLD:  # BUG: should be >=, exactly 10 units must be discounted\n+    if quantity >= BULK_THRESHOLD:\n         total *= 1 - BULK_DISCOUNT\n     return round(total, 2)\n \n",
+        "post_repro_runs": [
+          {
+            "label": "post_repro_1",
+            "outcome": "PASSED",
+            "exit_code": 0,
+            "duration_s": 0.217,
+            "counts": {
+              "passed": 1
+            },
+            "failed_tests": [],
+            "output_tail": ".                                                                        [100%]\n1 passed in 0.01s\n",
+            "command": [
+              "/usr/bin/python3",
+              "-m",
+              "pytest",
+              "-q",
+              "--no-header",
+              "--color=no",
+              "--tb=short",
+              "-p",
+              "no:cacheprovider",
+              "-o",
+              "junit_family=xunit2",
+              "--junitxml=/tmp/recon_run_qivtlanf/junit.xml",
+              "recon_generated/test_recon_repro.py"
+            ]
+          },
+          {
+            "label": "post_repro_2",
+            "outcome": "PASSED",
+            "exit_code": 0,
+            "duration_s": 0.219,
+            "counts": {
+              "passed": 1
+            },
+            "failed_tests": [],
+            "output_tail": ".                                                                        [100%]\n1 passed in 0.01s\n",
+            "command": [
+              "/usr/bin/python3",
+              "-m",
+              "pytest",
+              "-q",
+              "--no-header",
+              "--color=no",
+              "--tb=short",
+              "-p",
+              "no:cacheprovider",
+              "-o",
+              "junit_family=xunit2",
+              "--junitxml=/tmp/recon_run__u7fqdue/junit.xml",
+              "recon_generated/test_recon_repro.py"
+            ]
+          }
+        ],
+        "post_existing": {
+          "label": "post_existing",
+          "outcome": "PASSED",
+          "exit_code": 0,
+          "duration_s": 0.221,
+          "counts": {
+            "passed": 4
+          },
+          "failed_tests": [],
+          "output_tail": "....                                                                     [100%]\n4 passed in 0.01s\n",
+          "command": [
+            "/usr/bin/python3",
+            "-m",
+            "pytest",
+            "-q",
+            "--no-header",
+            "--color=no",
+            "--tb=short",
+            "-p",
+            "no:cacheprovider",
+            "-o",
+            "junit_family=xunit2",
+            "--junitxml=/tmp/recon_run_cnvgth0t/junit.xml",
+            "--ignore=recon_generated"
+          ]
+        }
+      }
+    ],
+    "changed_files": [
+      "shop/pricing.py"
+    ],
+    "diff": "--- a/shop/pricing.py\n+++ b/shop/pricing.py\n@@ -12,7 +12,7 @@\n     if quantity < 0:\n         raise ValueError(\"quantity must not be negative\")\n     total = unit_price * quantity\n-    if quantity > BULK_THRESHOLD:  # BUG: should be >=, exactly 10 units must be discounted\n+    if quantity >= BULK_THRESHOLD:\n         total *= 1 - BULK_DISCOUNT\n     return round(total, 2)\n \n"
+  },
+  "post_patch": {
+    "attempt": 1,
+    "explanation": "The threshold comparison should be inclusive.",
+    "patch_error": null,
+    "status": "VERIFIED",
+    "reasons": [],
+    "changed_files": [
+      "shop/pricing.py"
+    ],
+    "diff": "--- a/shop/pricing.py\n+++ b/shop/pricing.py\n@@ -12,7 +12,7 @@\n     if quantity < 0:\n         raise ValueError(\"quantity must not be negative\")\n     total = unit_price * quantity\n-    if quantity > BULK_THRESHOLD:  # BUG: should be >=, exactly 10 units must be discounted\n+    if quantity >= BULK_THRESHOLD:\n         total *= 1 - BULK_DISCOUNT\n     return round(total, 2)\n \n",
+    "post_repro_runs": [
+      {
+        "label": "post_repro_1",
+        "outcome": "PASSED",
+        "exit_code": 0,
+        "duration_s": 0.217,
+        "counts": {
+          "passed": 1
+        },
+        "failed_tests": [],
+        "output_tail": ".                                                                        [100%]\n1 passed in 0.01s\n",
+        "command": [
+          "/usr/bin/python3",
+          "-m",
+          "pytest",
+          "-q",
+          "--no-header",
+          "--color=no",
+          "--tb=short",
+          "-p",
+          "no:cacheprovider",
+          "-o",
+          "junit_family=xunit2",
+          "--junitxml=/tmp/recon_run_qivtlanf/junit.xml",
+          "recon_generated/test_recon_repro.py"
+        ]
+      },
+      {
+        "label": "post_repro_2",
+        "outcome": "PASSED",
+        "exit_code": 0,
+        "duration_s": 0.219,
+        "counts": {
+          "passed": 1
+        },
+        "failed_tests": [],
+        "output_tail": ".                                                                        [100%]\n1 passed in 0.01s\n",
+        "command": [
+          "/usr/bin/python3",
+          "-m",
+          "pytest",
+          "-q",
+          "--no-header",
+          "--color=no",
+          "--tb=short",
+          "-p",
+          "no:cacheprovider",
+          "-o",
+          "junit_family=xunit2",
+          "--junitxml=/tmp/recon_run__u7fqdue/junit.xml",
+          "recon_generated/test_recon_repro.py"
+        ]
+      }
+    ],
+    "post_existing": {
+      "label": "post_existing",
+      "outcome": "PASSED",
+      "exit_code": 0,
+      "duration_s": 0.221,
+      "counts": {
+        "passed": 4
+      },
+      "failed_tests": [],
+      "output_tail": "....                                                                     [100%]\n4 passed in 0.01s\n",
+      "command": [
+        "/usr/bin/python3",
+        "-m",
+        "pytest",
+        "-q",
+        "--no-header",
+        "--color=no",
+        "--tb=short",
+        "-p",
+        "no:cacheprovider",
+        "-o",
+        "junit_family=xunit2",
+        "--junitxml=/tmp/recon_run_cnvgth0t/junit.xml",
+        "--ignore=recon_generated"
+      ]
+    }
+  },
+  "generated_test": "from shop.pricing import line_total\n\n\ndef test_exactly_ten_units_get_bulk_discount():\n    assert line_total(10.0, 10) == 90.0\n",
+  "limitations": [
+    "The generated reproduction test is itself LLM-written; a human should read it before trusting the verdict.",
+    "A baseline failure for a reason unrelated to the reported bug would still count as 'reproduced'.",
+    "Verification is only as strong as the existing test suite plus the one generated test.",
+    "Tests run in a temp copy with a scrubbed environment and timeouts, but this is NOT a security sandbox (no network or filesystem isolation). Run RECON in a container/VM for untrusted code.",
+    "Only Python projects whose tests run with 'python -m pytest' from the project root are supported."
+  ],
+  "project_copy": {
+    "files": 4,
+    "bytes": 1420,
+    "skipped_large_files": []
+  },
+  "context_files": [
+    "shop/pricing.py",
+    "tests/test_pricing.py"
+  ],
+  "repro_attempts": [
+    {
+      "attempt": 1,
+      "explanation": "canned fixture",
+      "safety_violations": []
+    }
+  ],
+  "api_usage": {
+    "calls_made": 2,
+    "max_calls_budget": 2,
+    "prompt_tokens_reported": 0,
+    "completion_tokens_reported": 0,
+    "calls_with_reported_usage": 0,
+    "stages": [
+      "repro",
+      "patch"
+    ],
+    "errors": [],
+    "note": "Application-level counters only. They are not a hard account-wide spending cap; check your Nebius console for actual usage and billing."
+  },
+  "duration_s": 1.42
+}

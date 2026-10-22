@@ -1,0 +1,2 @@
+{"explanation": "Deliberately WRONG patch used to demonstrate UNVERIFIED: changes the discount rate, not the threshold.",
+ "edits": [{"path": "shop/pricing.py", "search": "BULK_DISCOUNT = 0.10", "replace": "BULK_DISCOUNT = 0.20"}]}

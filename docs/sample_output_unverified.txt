@@ -1,0 +1,40 @@
+[offline mode] replaying canned model responses; no network, no credits used.
+[1/5] Copied project to a temp dir (4 files). Sent 2 file(s) as context: shop/pricing.py, tests/test_pricing.py
+[2/5] Running the existing tests on the UNMODIFIED code...
+      existing tests: PASSED (4 passed)
+[3/5] Generating a reproduction test (model call 1)...
+      bug reproduced: test FAILED on the original code in 2/2 runs.
+[4/5] Generating a patch (model call, attempt 1/2)...
+[5/5] Verifying in the temp copy (repro test, reruns, existing tests)...
+      attempt 1: UNVERIFIED (reproduction test did not pass after the patch (run 1: FAILED); existing tests regressed: tests.test_pricing::test_large_order_gets_bulk_discount)
+[4/5] Generating a patch (model call, attempt 2/2)...
+      repair attempt not possible: API-call budget exhausted (2/2); refusing to call the model for stage 'patch_repair'
+
+================================================================
+ RECON RESULT: UNVERIFIED
+================================================================
+ - reproduction test did not pass after the patch (run 1: FAILED)
+ - existing tests regressed: tests.test_pricing::test_large_order_gets_bulk_discount
+ - repair attempt unavailable: API-call budget exhausted (2/2); refusing to call the model for stage 'patch_repair'
+ baseline repro test : FAILED, FAILED (expected FAILED)
+ post-patch repro    : FAILED (expected PASSED)
+ existing tests after: FAILED {'passed': 3, 'failed': 1}
+ changed files       : shop/pricing.py
+ API calls           : 2/2 (tokens reported: 0 in / 0 out)
+
+--- proposed patch (applied ONLY to a temp copy; your files are untouched) ---
+--- a/shop/pricing.py
++++ b/shop/pricing.py
+@@ -1,7 +1,7 @@
+ """Tiny pricing helpers used as the RECON demo project (contains a deliberate bug)."""
+ 
+ BULK_THRESHOLD = 10
+-BULK_DISCOUNT = 0.10
++BULK_DISCOUNT = 0.20
+ 
+ 
+ def line_total(unit_price: float, quantity: int) -> float:
+
+Passing tests are evidence that the reported behaviour was fixed and that existing tests still pass. They are not a mathematical proof of correctness.
+
+Report written to recon_output/recon_report.json

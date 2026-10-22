@@ -1,0 +1,25 @@
+# secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# python
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+
+# generated artifacts
+.pytest-temp-recon/
+recon_output/
+recon_generated/
+*.zip
+.idea/
+.vscode/

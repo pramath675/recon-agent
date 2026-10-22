@@ -1,0 +1,34 @@
+[offline mode] replaying canned model responses; no network, no credits used.
+[1/5] Copied project to a temp dir (4 files). Sent 2 file(s) as context: shop/pricing.py, tests/test_pricing.py
+[2/5] Running the existing tests on the UNMODIFIED code...
+      existing tests: PASSED (4 passed)
+[3/5] Generating a reproduction test (model call 1)...
+      bug reproduced: test FAILED on the original code in 2/2 runs.
+[4/5] Generating a patch (model call, attempt 1/2)...
+[5/5] Verifying in the temp copy (repro test, reruns, existing tests)...
+      attempt 1: VERIFIED
+
+================================================================
+ RECON RESULT: VERIFIED
+================================================================
+ baseline repro test : FAILED, FAILED (expected FAILED)
+ post-patch repro    : PASSED, PASSED (expected PASSED)
+ existing tests after: PASSED {'passed': 4}
+ changed files       : shop/pricing.py
+ API calls           : 2/2 (tokens reported: 0 in / 0 out)
+
+--- proposed patch (applied ONLY to a temp copy; your files are untouched) ---
+--- a/shop/pricing.py
++++ b/shop/pricing.py
+@@ -12,7 +12,7 @@
+     if quantity < 0:
+         raise ValueError("quantity must not be negative")
+     total = unit_price * quantity
+-    if quantity > BULK_THRESHOLD:  # BUG: should be >=, exactly 10 units must be discounted
++    if quantity >= BULK_THRESHOLD:
+         total *= 1 - BULK_DISCOUNT
+     return round(total, 2)
+
+Passing tests are evidence that the reported behaviour was fixed and that existing tests still pass. They are not a mathematical proof of correctness.
+
+Report written to recon_output/recon_report.json

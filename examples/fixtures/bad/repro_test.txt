@@ -1,0 +1,5 @@
+from shop.pricing import line_total
+
+
+def test_exactly_ten_units_get_bulk_discount():
+    assert line_total(10.0, 10) == 90.0
