@@ -1,3 +1,11 @@
+<p align="center">
+  <img src="docs/recon_wordmark.svg" alt="RECON Logo" width="620">
+</p>
+
+<p align="center">
+  <img src="docs/recon_dashboard.png" alt="RECON Terminal Verification Dashboard" width="820">
+</p>
+
 # RECON — verification-first autonomous bug fixing
 
 RECON takes a Python bug report and a local project, then **reproduces the bug with a generated pytest test, patches the code in a temporary copy, and decides the outcome from real test results** — never from the model's claim.

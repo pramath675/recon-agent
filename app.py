@@ -51,34 +51,83 @@ body, .gradio-container {
   font-family: var(--recon-mono) !important;
 }
 
-/* Header & Wordmark */
+/* Header & Polished Wordmark */
 .recon-terminal-header {
   background: var(--recon-surface);
   border: 1px solid var(--recon-border);
   border-radius: 8px;
-  padding: 1.5rem;
+  padding: 1.25rem 1.5rem;
   margin-bottom: 1.25rem;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.7);
 }
 
-.recon-wordmark-pre {
-  font-family: var(--recon-mono) !important;
-  font-size: 1.15rem;
+.recon-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 1.15rem;
+}
+
+.recon-emblem-svg {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 10px rgba(0, 255, 102, 0.3));
+}
+
+.recon-brand-details {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.recon-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.recon-title-text {
+  font-family: var(--recon-mono);
+  font-size: 2.1rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  color: var(--recon-lime);
+  text-shadow: 0 0 12px var(--recon-lime-glow), 0 0 24px rgba(0, 255, 102, 0.2);
+  line-height: 1;
+}
+
+.recon-badge-pill {
+  font-size: 0.65rem;
+  font-family: var(--recon-mono);
   font-weight: 800;
-  color: var(--recon-lime) !important;
-  text-shadow: 0 0 10px var(--recon-lime-glow), 0 0 20px rgba(0, 255, 102, 0.2);
-  line-height: 1.2;
-  margin: 0 0 0.5rem 0;
-  letter-spacing: 0.1em;
-  user-select: none;
+  letter-spacing: 0.08em;
+  color: #04080c;
+  background: var(--recon-lime);
+  padding: 2px 7px;
+  border-radius: 3px;
+  text-transform: uppercase;
+}
+
+.recon-status-indicator {
+  font-size: 0.65rem;
+  font-family: var(--recon-mono);
+  font-weight: 700;
+  color: var(--recon-text-dim);
+  letter-spacing: 0.06em;
+  border: 1px solid var(--recon-border);
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: #0d131c;
 }
 
 .recon-tagline {
-  font-size: 0.85rem;
-  letter-spacing: 0.18em;
+  font-size: 0.82rem;
+  letter-spacing: 0.14em;
   color: var(--recon-text-dim);
   text-transform: uppercase;
-  margin-top: 0.25rem;
+  margin-top: 0.35rem;
+  font-family: var(--recon-mono);
 }
 
 /* Pipeline Stepper Layout: 4 integrated grid columns (no loose wrapping arrows) */
@@ -581,17 +630,16 @@ def create_ui() -> gr.Blocks:
         # Inject custom styling directly
         gr.HTML(f"<style>{TERMINAL_CSS}</style>")
 
-        # Terminal Header with Neon Lime Wordmark
+        # Terminal Header with Large Bold Block RECON Wordmark
+        wordmark_svg = load_file_content(REPO_ROOT / "docs" / "recon_wordmark.svg")
         gr.HTML(
-            """
+            f"""
             <div class="recon-terminal-header">
-              <pre class="recon-wordmark-pre">
-█▀█ █▀▀ █▀▀ █▀█ █▄░█
-█▀▄ ██▄ █▄▄ █▄█ █░▀█
-[ R E C O N ]</pre>
-              <div class="recon-tagline">Verification-First Autonomous Bug Fixing Agent</div>
-              <div style="font-size: 0.8rem; color: #8b9bb4; margin-top: 0.75rem; line-height: 1.5;">
-                AI coding agents often declare "fixed it!" and move on. RECON does not take their word for it.
+              <div style="max-width: 680px; margin: 0 auto;">
+                {wordmark_svg}
+              </div>
+              <div style="font-size: 0.8rem; color: #8b9bb4; margin-top: 0.85rem; line-height: 1.5; border-top: 1px solid #141c28; padding-top: 0.75rem; text-align: center;">
+                AI coding agents often declare &quot;fixed it!&quot; and move on. RECON does not take their word for it.
                 It only reports <span style="color:#00ff66; font-weight:bold;">VERIFIED</span> when real pytest runs prove the bug existed and was resolved without regressions.
               </div>
             </div>
