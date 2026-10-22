@@ -51,7 +51,10 @@ def test_copy_skips_secrets_venvs_git_and_symlinks(tmp_path):
     for rel in ["a.py", ".env", "keys/server.pem", ".venv/lib.py", ".git/config", "__pycache__/a.pyc", "sub/ok.py"]:
         (src / rel).parent.mkdir(parents=True, exist_ok=True)
         (src / rel).write_text("x")
-    (src / "link.py").symlink_to(src / "a.py")
+    try:
+        (src / "link.py").symlink_to(src / "a.py")
+    except OSError:
+        pytest.skip("OS does not permit symlink creation")
     (src / "big.bin").write_bytes(b"0" * 6_000_000)
     stats = copy_project(src, dst)
     copied = sorted(p.relative_to(dst).as_posix() for p in dst.rglob("*") if p.is_file())

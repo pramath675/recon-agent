@@ -55,7 +55,10 @@ def test_rejects_non_python_and_missing_files(tmp_path):
 
 def test_rejects_symlink(tmp_path):
     root = project(tmp_path, {"real.py": "x = 1\n"})
-    (root / "link.py").symlink_to(root / "real.py")
+    try:
+        (root / "link.py").symlink_to(root / "real.py")
+    except OSError:
+        pytest.skip("OS does not permit symlink creation")
     with pytest.raises(PatchError):
         apply_edits(root, edit(path="link.py"))
 
