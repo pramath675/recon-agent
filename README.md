@@ -32,12 +32,18 @@ RECON takes a Python bug report and a local project, then **reproduces the bug w
 |---|---|---|
 | `VERIFIED` | `0` | The repro test **failed** on the unmodified code (every baseline run), **passes** after the patch (every rerun), no protected file was touched, and no previously-passing existing test regressed. |
 | `UNVERIFIED` | `1` | A patch was produced but at least one requirement failed (still failing, regression, rejected patch, tampering, flaky). |
-| `COULD NOT REPRODUCE` | `2` | The generated test did not fail cleanly on the original code (it passed, timed out, or errored). Stopped before patching to save API credits. |
+| `COULD NOT REPRODUCE` | `2` | The repro test could not be made to fail cleanly after at most one repair attempt. RECON stops before generating a patch. |
 | `ERROR` | `3` | Operational problem (missing config, API error, budget exhausted, invalid project). Not a verification verdict. |
 
 ---
 
 ## How it works
+
+RECON's CLI accepts a local Python project and a bug report. It runs a four-stage workflow:
+- **Baseline**: Run the project's existing tests in a temporary working copy.
+- **Reproduce**: Generate a pytest test that should fail on the original code. If it cannot be made to fail cleanly after at most one repair attempt, RECON stops with `COULD NOT REPRODUCE` before generating a patch.
+- **Patch**: Generate structured search-and-replace edits and apply them to a temporary working copy.
+- **Verify**: Run the reproduction test and existing tests again.
 
 ```
 bug report + project
@@ -165,7 +171,7 @@ Exit codes: `0` VERIFIED, `1` UNVERIFIED, `2` COULD NOT REPRODUCE, `3` ERROR.
   - `--max-calls 2` limits the run to at most two model calls. In the no-repair path, these are one reproduction call and one patch call. A repair call may consume the remaining budget and prevent a later stage.
   - Calls are counted *before* dispatching, so failed requests still consume budget.
 * **Token Controls**: `max_tokens` (`RECON_MAX_OUTPUT_TOKENS`, default 1500) is enforced per request; input is capped by `RECON_MAX_CONTEXT_CHARS` (~4 chars ≈ 1 token).
-* **Early Exit**: If the reproduction test does not fail cleanly on the unmodified code, RECON halts with `COULD NOT REPRODUCE`, spending 0 patch calls.
+* **Early Exit**: Generate a pytest test that should fail on the original code. If it cannot be made to fail cleanly after at most one repair attempt, RECON stops with `COULD NOT REPRODUCE` before generating a patch.
 * **No Runaway Loops**: Explicit HTTP timeouts, **zero automatic retries**, and zero autonomous agent loops. Test verdicts are computed by deterministic Python logic, never by model claims.
 * *Notice*: These are application-level request controls, not a hard account-wide billing cap. Check your Nebius console for real account usage.
 
