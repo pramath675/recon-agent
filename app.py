@@ -51,7 +51,7 @@ body, .gradio-container {
   font-family: var(--recon-mono) !important;
 }
 
-/* Header & Polished Wordmark */
+/* Header & Animated Wordmark */
 .recon-terminal-header {
   background: var(--recon-surface);
   border: 1px solid var(--recon-border);
@@ -61,76 +61,52 @@ body, .gradio-container {
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.7);
 }
 
-.recon-brand-row {
-  display: flex;
-  align-items: center;
-  gap: 1.15rem;
+.recon-wordmark-wrapper {
+  position: relative;
+  max-width: 680px;
+  margin: 0 auto;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
-.recon-emblem-svg {
-  width: 52px;
-  height: 52px;
-  flex-shrink: 0;
-  filter: drop-shadow(0 0 10px rgba(0, 255, 102, 0.3));
+.recon-wordmark-wrapper svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  animation: reconWordmarkPulse 5s ease-in-out infinite alternate;
 }
 
-.recon-brand-details {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+/* Subtle, restrained terminal scan effect */
+.recon-wordmark-wrapper::after {
+  content: "";
+  position: absolute;
+  top: -100%;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 255, 102, 0.02) 42%,
+    rgba(0, 255, 102, 0.12) 50%,
+    rgba(0, 255, 102, 0.02) 58%,
+    transparent 100%
+  );
+  pointer-events: none;
+  animation: reconScanline 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-.recon-title-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
+@keyframes reconScanline {
+  0% { transform: translateY(0%); }
+  100% { transform: translateY(200%); }
 }
 
-.recon-title-text {
-  font-family: var(--recon-mono);
-  font-size: 2.1rem;
-  font-weight: 900;
-  letter-spacing: 0.16em;
-  color: var(--recon-lime);
-  text-shadow: 0 0 12px var(--recon-lime-glow), 0 0 24px rgba(0, 255, 102, 0.2);
-  line-height: 1;
+@keyframes reconWordmarkPulse {
+  0% { filter: drop-shadow(0 0 4px rgba(0, 255, 102, 0.15)); }
+  100% { filter: drop-shadow(0 0 10px rgba(0, 255, 102, 0.35)); }
 }
 
-.recon-badge-pill {
-  font-size: 0.65rem;
-  font-family: var(--recon-mono);
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  color: #04080c;
-  background: var(--recon-lime);
-  padding: 2px 7px;
-  border-radius: 3px;
-  text-transform: uppercase;
-}
-
-.recon-status-indicator {
-  font-size: 0.65rem;
-  font-family: var(--recon-mono);
-  font-weight: 700;
-  color: var(--recon-text-dim);
-  letter-spacing: 0.06em;
-  border: 1px solid var(--recon-border);
-  padding: 2px 7px;
-  border-radius: 3px;
-  background: #0d131c;
-}
-
-.recon-tagline {
-  font-size: 0.82rem;
-  letter-spacing: 0.14em;
-  color: var(--recon-text-dim);
-  text-transform: uppercase;
-  margin-top: 0.35rem;
-  font-family: var(--recon-mono);
-}
-
-/* Pipeline Stepper Layout: 4 integrated grid columns (no loose wrapping arrows) */
+/* Pipeline Stepper Layout: 4 integrated grid columns */
 .recon-pipeline {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -152,7 +128,10 @@ body, .gradio-container {
   border-radius: 4px;
   padding: 0.65rem 0.85rem;
   text-align: left;
-  transition: all 0.2s ease;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.2s ease,
+              box-shadow 0.2s ease,
+              background 0.2s ease;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -164,11 +143,29 @@ body, .gradio-container {
   border: 1px solid #1a2332 !important;
 }
 
+.pipe-node-neutral:hover {
+  transform: translateY(-2px);
+  border-color: #2e3e54 !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45) !important;
+}
+
 /* Active stage (highlighted ONLY while running) */
 .pipe-node-active {
   background: rgba(0, 255, 102, 0.12) !important;
   border: 1px solid #00ff66 !important;
   box-shadow: 0 0 16px rgba(0, 255, 102, 0.35) !important;
+  animation: stageGlowPulse 2s ease-in-out infinite;
+}
+
+@keyframes stageGlowPulse {
+  0%, 100% {
+    border-color: #00ff66;
+    box-shadow: 0 0 14px rgba(0, 255, 102, 0.3);
+  }
+  50% {
+    border-color: #39ff14;
+    box-shadow: 0 0 22px rgba(0, 255, 102, 0.55);
+  }
 }
 
 .pipe-node-header {
@@ -209,6 +206,12 @@ body, .gradio-container {
   padding: 1px 5px;
   border-radius: 2px;
   letter-spacing: 0.05em;
+  animation: activeIndicatorPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes activeIndicatorPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(0.98); }
 }
 
 .pipe-final-badge {
@@ -232,19 +235,41 @@ body, .gradio-container {
   font-family: var(--recon-mono);
   border-width: 1px;
   border-style: solid;
+  animation: bannerEntrance 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+}
+
+@keyframes bannerEntrance {
+  from {
+    opacity: 0.3;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .status-verified {
   background: rgba(0, 255, 102, 0.08);
   border-color: var(--recon-lime);
   box-shadow: 0 0 16px var(--recon-lime-glow);
+  animation: bannerEntrance 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+             verifiedSubtlePulse 3.5s ease-in-out infinite;
 }
+
+@keyframes verifiedSubtlePulse {
+  0%, 100% { box-shadow: 0 0 14px rgba(0, 255, 102, 0.25); }
+  50% { box-shadow: 0 0 22px rgba(0, 255, 102, 0.45); }
+}
+
 .status-verified .status-title {
   color: var(--recon-lime);
   font-size: 1.15rem;
   font-weight: 800;
   letter-spacing: 0.08em;
 }
+
 .status-verified .status-badge-pill {
   background: var(--recon-lime);
   color: #04080c;
@@ -259,13 +284,22 @@ body, .gradio-container {
   background: rgba(255, 51, 68, 0.08);
   border-color: var(--recon-red);
   box-shadow: 0 0 16px var(--recon-red-glow);
+  animation: bannerEntrance 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+             unverifiedSubtlePulse 3.5s ease-in-out infinite;
 }
+
+@keyframes unverifiedSubtlePulse {
+  0%, 100% { box-shadow: 0 0 14px rgba(255, 51, 68, 0.25); }
+  50% { box-shadow: 0 0 22px rgba(255, 51, 68, 0.45); }
+}
+
 .status-unverified .status-title {
   color: var(--recon-red);
   font-size: 1.15rem;
   font-weight: 800;
   letter-spacing: 0.08em;
 }
+
 .status-unverified .status-badge-pill {
   background: var(--recon-red);
   color: #ffffff;
@@ -279,14 +313,35 @@ body, .gradio-container {
 .status-running {
   background: rgba(0, 255, 102, 0.05);
   border-color: #00ff66;
-  box-shadow: 0 0 12px var(--recon-lime-glow);
+  box-shadow: 0 0 14px var(--recon-lime-glow);
+  position: relative;
+  overflow: hidden;
+  animation: bannerEntrance 0.25s ease forwards;
 }
+
+.status-running::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: -100%;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #00ff66, transparent);
+  animation: runningProgressBar 1.8s ease-in-out infinite;
+}
+
+@keyframes runningProgressBar {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(200%); }
+}
+
 .status-running .status-title {
   color: #00ff66;
   font-size: 1.05rem;
   font-weight: 700;
   letter-spacing: 0.06em;
 }
+
 .status-running .status-badge-pill {
   background: #00ff66;
   color: #05090e;
@@ -297,16 +352,30 @@ body, .gradio-container {
   letter-spacing: 0.08em;
 }
 
+.status-dot-pulse {
+  display: inline-block;
+  color: #00ff66;
+  margin-right: 8px;
+  animation: dotPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.35); opacity: 0.6; }
+}
+
 .status-ready {
   background: var(--recon-surface);
   border-color: var(--recon-border);
 }
+
 .status-ready .status-title {
   color: var(--recon-text-dim);
   font-size: 1.05rem;
   font-weight: 700;
   letter-spacing: 0.08em;
 }
+
 .status-ready .status-badge-pill {
   background: #1e293b;
   color: var(--recon-text-dim);
@@ -315,17 +384,33 @@ body, .gradio-container {
   border-radius: 3px;
 }
 
-/* Action Buttons */
+/* Action Buttons with Smooth Hover/Focus Feedback */
 .btn-run-good {
   background: var(--recon-lime) !important;
   color: #05090e !important;
   font-weight: 800 !important;
   font-family: var(--recon-mono) !important;
   letter-spacing: 0.04em !important;
-  border: none !important;
+  border: 1px solid transparent !important;
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.18s ease,
+              background-color 0.18s ease !important;
+  cursor: pointer !important;
 }
+
 .btn-run-good:hover {
-  box-shadow: 0 0 16px var(--recon-lime-glow) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 255, 102, 0.45) !important;
+}
+
+.btn-run-good:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 255, 102, 0.3) !important;
+}
+
+.btn-run-good:focus-visible {
+  outline: 2px solid #00ff66 !important;
+  outline-offset: 2px !important;
 }
 
 .btn-run-bad {
@@ -335,10 +420,27 @@ body, .gradio-container {
   font-family: var(--recon-mono) !important;
   border: 1px solid var(--recon-red) !important;
   letter-spacing: 0.04em !important;
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.18s ease,
+              background-color 0.18s ease,
+              border-color 0.18s ease !important;
+  cursor: pointer !important;
 }
+
 .btn-run-bad:hover {
+  transform: translateY(-2px);
   background: #1f2533 !important;
-  box-shadow: 0 0 14px var(--recon-red-glow) !important;
+  box-shadow: 0 4px 18px rgba(255, 51, 68, 0.4) !important;
+}
+
+.btn-run-bad:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(255, 51, 68, 0.25) !important;
+}
+
+.btn-run-bad:focus-visible {
+  outline: 2px solid var(--recon-red) !important;
+  outline-offset: 2px !important;
 }
 
 /* Code and Form Fields */
@@ -347,6 +449,22 @@ pre, code, textarea, input {
   color: #e2e8f0 !important;
   border-color: var(--recon-border) !important;
   font-family: var(--recon-mono) !important;
+}
+
+/* Accessibility: Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .recon-wordmark-wrapper::after,
+  .status-running::after {
+    display: none !important;
+  }
 }
 """
 
@@ -436,7 +554,7 @@ def render_status_html(status: str, extra: str = "") -> str:
         return f"""
         <div class="status-banner status-running">
           <div>
-            <span style="color:#00ff66; margin-right:8px;">●</span>
+            <span class="status-dot-pulse">●</span>
             <span class="status-title">{extra}</span>
           </div>
           <span class="status-badge-pill">STAGE ACTIVE</span>
@@ -635,7 +753,7 @@ def create_ui() -> gr.Blocks:
         gr.HTML(
             f"""
             <div class="recon-terminal-header">
-              <div style="max-width: 680px; margin: 0 auto;">
+              <div class="recon-wordmark-wrapper">
                 {wordmark_svg}
               </div>
               <div style="font-size: 0.8rem; color: #8b9bb4; margin-top: 0.85rem; line-height: 1.5; border-top: 1px solid #141c28; padding-top: 0.75rem; text-align: center;">
