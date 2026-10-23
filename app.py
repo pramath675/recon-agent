@@ -6,6 +6,7 @@ No live Nebius API calls; no API keys required.
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 import queue
 import threading
@@ -860,4 +861,5 @@ def create_ui() -> gr.Blocks:
 demo = create_ui()
 
 if __name__ == "__main__":
-    demo.launch()
+    port = int(os.environ.get("PORT", 7860))
+    demo.launch(server_name="0.0.0.0", server_port=port)
