@@ -99,7 +99,9 @@ python -m pytest
 
 ## Interactive Web Dashboard (Gradio)
 
-RECON includes a standalone local terminal-styled web application with live animated pipeline steppers:
+* **Public Live Demo**: **[https://recon-agent-frbn.onrender.com](https://recon-agent-frbn.onrender.com)** *(Hosted on Render Free Tier, offline fixtures only)*
+
+You can also run the web dashboard locally:
 
 ```bash
 python app.py
