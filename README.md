@@ -1,3 +1,15 @@
+---
+title: RECON Bug Fixing Agent
+emoji: 🛡️
+colorFrom: green
+colorTo: gray
+sdk: gradio
+sdk_version: 6.30.0
+app_file: app.py
+pinned: false
+license: mit
+---
+
 <p align="center">
   <img src="docs/recon_wordmark.svg" alt="RECON Logo" width="620">
 </p>
