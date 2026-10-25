@@ -22,7 +22,7 @@ RECON takes a Python bug report and a local project, then **reproduces the bug w
 * **Open Source License**: **MIT License** (OSI-approved, included in [`LICENSE`](LICENSE) and recognized in the GitHub repository About section).
 * **Project Timeline**: Conceived, built, tested, and published during the official hackathon submission window (August 26, 2026 – October 30, 2026; initial commit on October 22, 2026).
 * **Verification Philosophy**: AI coding agents routinely declare "fixed it!" without proof. RECON enforces automated empirical verification by running real pytest suites inside a temporary working copy.
-* **Cost Controls**: The default application budget allows up to four calls (`--max-calls 4`), permitting up to one repair attempt per stage. `--max-calls 2` limits the run to at most two model calls. In the no-repair path, these are one reproduction call and one patch call. A repair call may consume the remaining budget and prevent a later stage.
+* **Cost Controls**: The default application budget is 4 calls (`RECON_MAX_API_CALLS=4`), permitting up to one repair attempt per stage, while `--max-calls 2` is an optional cap that limits the run to at most two model calls. In the no-repair path under that cap, these are one reproduction call and one patch call. A repair call may consume the remaining budget and prevent a later stage.
 
 ---
 
@@ -151,7 +151,7 @@ python -m recon --check-config
 # Default execution (allows up to 4 calls to support repair attempts):
 python -m recon --project examples/buggy_shop --bug-report examples/buggy_shop/bug_report.md
 
-# Or with a two-call cap (limits the entire run to at most two model calls):
+# Or with an optional two-call cap (limits the entire run to at most two model calls):
 python -m recon --project examples/buggy_shop --bug-report examples/buggy_shop/bug_report.md --max-calls 2
 ```
 
@@ -166,9 +166,9 @@ Exit codes: `0` VERIFIED, `1` UNVERIFIED, `2` COULD NOT REPRODUCE, `3` ERROR.
 
 ## Cost Controls & Application-Level Limits
 
-* **Call Budget** (`RECON_MAX_API_CALLS`, default 4, or `--max-calls`):
-  - The default budget allows **up to four calls** across the pipeline, supporting up to one repair attempt per stage (initial repro + repro repair, and initial patch + patch repair). Early termination (such as `COULD NOT REPRODUCE`) stops the run early and uses fewer calls.
-  - `--max-calls 2` limits the run to at most two model calls. In the no-repair path, these are one reproduction call and one patch call. A repair call may consume the remaining budget and prevent a later stage.
+* **Call Budget** (`RECON_MAX_API_CALLS`, default 4, or optional `--max-calls` cap):
+  - The default budget is **4 calls** across the pipeline (`RECON_MAX_API_CALLS=4`), supporting up to one repair attempt per stage (initial repro + repro repair, and initial patch + patch repair). Early termination (such as `COULD NOT REPRODUCE`) stops the run early and uses fewer calls.
+  - `--max-calls 2` is an optional cap that limits the run to at most two model calls. In the no-repair path under that cap, these are one reproduction call and one patch call. A repair call may consume the remaining budget and prevent a later stage.
   - Calls are counted *before* dispatching, so failed requests still consume budget.
 * **Token Controls**: `max_tokens` (`RECON_MAX_OUTPUT_TOKENS`, default 1500) is enforced per request; input is capped by `RECON_MAX_CONTEXT_CHARS` (~4 chars ≈ 1 token).
 * **Early Exit**: Generate a pytest test that should fail on the original code. If it cannot be made to fail cleanly after at most one repair attempt, RECON stops with `COULD NOT REPRODUCE` before generating a patch.
