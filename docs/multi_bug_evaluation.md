@@ -1,8 +1,8 @@
 # RECON Multi-Bug Evaluation Report
 
-This document records the empirical results of evaluating RECON across five distinct, controlled Python/pytest benchmark bugs using **`nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B`** via **Nebius Token Factory**.
+This document records the empirical results of evaluating RECON across a five-case benchmark suite using **`nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B`** via **Nebius Token Factory**. The suite comprises a repeat of the bundled `01_buggy_shop` pricing demo bug plus four additional Python/pytest benchmark cases.
 
-> **Methodology Note**: These are five small, curated examples designed to test RECON's verification loop across different bug archetypes under strict cost and call controls. Passing tests are empirical evidence that the reproduction test was resolved and existing tests did not regress; they are **not a mathematical proof of correctness**, nor do these five cases represent a general statistical reliability or success-rate claim across arbitrary Python repositories.
+> **Methodology Note**: These are five small, curated benchmark examples (one repeated demo bug and four additional cases) designed to test RECON's verification loop across different bug archetypes under strict cost and call controls. Passing tests are empirical evidence that the reproduction test was resolved and existing tests did not regress; they are **not a mathematical proof of correctness**, nor do these five cases represent a general statistical reliability or success-rate claim across arbitrary Python repositories.
 
 ---
 
@@ -15,9 +15,9 @@ This document records the empirical results of evaluating RECON across five dist
 * **Harness Cap**: Strict aggregate limit of 10 model requests maximum across all 5 tasks.
 * **Total API Calls Used**: **9 requests** (within the 10-call aggregate cap).
 * **Reported Token Usage**: **6,814 prompt tokens** and **5,218 completion tokens** across completed requests (excluding `03_token_bucket`, where exact token consumption is unavailable because the request was cut off by output token limits before returning a usage payload).
-* **Overall Outcome**:
-  * **3 / 5 cases** were **VERIFIED** by RECON and **independently passed** ground-truth oracle tests on clean copies.
-  * **2 / 5 cases** halted safely with **ERROR** before producing a patch (1 due to token truncation, 1 due to empty model response).
+* **Evaluation Outcomes**:
+  * **Overall**: **3 / 5 cases** were **VERIFIED** by RECON (including the repeated `01_buggy_shop` case) and **independently passed** ground-truth oracle tests on clean copies.
+  * **Additional Cases**: Among the **four additional cases**, **2 were VERIFIED** (`02_semver`, `05_tax_calc`) and **2 ended in ERROR** (`03_token_bucket` halted due to token truncation during reproduction test generation, and `04_slugify` halted due to an empty model patch payload).
 
 ---
 
@@ -25,7 +25,7 @@ This document records the empirical results of evaluating RECON across five dist
 
 | Task ID | Benchmark Name | Domain & Verified Bug Archetype | RECON Verdict | Independent Oracle | API Calls | Reported Tokens (In / Out) | Duration |
 |---|---|---|---|---|---|---|---|
-| `01_buggy_shop` | Pricing Bulk Threshold | Pricing & Billing: boundary check (`>` vs `>=`) | `VERIFIED` | ✅ **PASS** (independently passed) | 2 / 2 | 1,724 / 1,576 | 12.5s |
+| `01_buggy_shop` | Pricing Bulk Threshold (repeat of demo) | Pricing & Billing: boundary check (`>` vs `>=`; repeats demo bug) | `VERIFIED` | ✅ **PASS** (independently passed) | 2 / 2 | 1,724 / 1,576 | 12.5s |
 | `02_semver` | Semantic Version Comparison | Developer Tooling: string vs integer sorting (`"10"` vs `"9"`) | `VERIFIED` | ✅ **PASS** (independently passed) | 2 / 2 | 2,009 / 1,242 | 11.7s |
 | `03_token_bucket` | Token Bucket Rate Limiter | Systems & Networking: unbounded idle token accumulation (missing capacity clamp) | `ERROR` | ⚪ **N/A** (no patch produced) | 1 / 2 | *Unavailable (truncated)* | 8.0s |
 | `04_slugify` | URL Slug Truncation Formatter | Web & Text: trailing delimiter leak (`max_len=12`) | `ERROR` | ⚪ **N/A** (no patch produced) | 2 / 2 | 712 / 821 | 15.0s |
@@ -35,7 +35,8 @@ This document records the empirical results of evaluating RECON across five dist
 
 ## Detailed Case Findings
 
-### 1. `01_buggy_shop` (Pricing Bulk Threshold) — `VERIFIED`
+### 1. `01_buggy_shop` (Pricing Bulk Threshold — Repeat of Bundled Demo) — `VERIFIED`
+* **Relationship to Demo**: This case deliberately repeats the bundled `examples/buggy_shop` demo bug (`line_total` bulk threshold boundary check) and the exact same `>` to `>=` fix under live automated benchmark conditions. This repeated case records one successful live run on the bundled demo bug within the two-call limit; it does not represent an independent new bug archetype.
 * **Bug**: `line_total(unit_price, quantity)` applied a 10% discount only when `quantity > 10` instead of `quantity >= 10`. Orders of exactly 10 units were billed without a discount.
 * **RECON Workflow**:
   * Call 1 generated an AST-safe pytest reproduction test asserting `line_total(10.0, 10) == 90.0`, which failed cleanly with an assertion error (`assert 100.0 == 90.0`) on unmodified code.

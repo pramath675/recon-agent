@@ -185,26 +185,26 @@ Exit codes: `0` VERIFIED, `1` UNVERIFIED, `2` COULD NOT REPRODUCE, `3` ERROR.
 * **Test Protection & Integrity**: Patches cannot touch test files, `conftest.py`, or pytest configuration. All test files are SHA-256 hashed before and after patching to detect tampering.
 * **Environment Scrubbing**: API keys (`NEBIUS_API_KEY`, etc.) are explicitly scrubbed from the pytest subprocess environment so untrusted code cannot read them.
 * **Empirical Evidence**: Passing tests demonstrate that the reproduction test was resolved and existing tests did not regress. They are empirical evidence, not a mathematical proof of correctness.
-* **Test Breadth & Future Work**: RECON was initially developed on the bundled `examples/buggy_shop` demo and subsequently evaluated on five curated benchmark bugs ([`docs/multi_bug_evaluation.md`](docs/multi_bug_evaluation.md)). Evaluating RECON across large external repositories and broader bug benchmarks remains future work.
+* **Test Breadth & Future Work**: RECON was initially developed on the bundled `examples/buggy_shop` demo and subsequently evaluated on a five-case benchmark suite comprising a repeat of the original demo bug plus four additional bug cases ([`docs/multi_bug_evaluation.md`](docs/multi_bug_evaluation.md)). Evaluating RECON across large external repositories and broader bug benchmarks remains future work.
 * **Human Review**: The reproduction test is LLM-generated; a human developer should review the test and the unified diff before trusting the result.
 
 ---
 
 ## Multi-Bug Live Evaluation (Nemotron 3 Nano on Nebius Token Factory)
 
-To evaluate whether RECON's verification loop functions beyond the single bundled `buggy_shop` demo, we conducted a capped live evaluation across five distinct, controlled Python/pytest benchmark bugs using `nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B` via Nebius Token Factory:
+To evaluate whether RECON's verification loop functions consistently across multiple scenarios, we conducted a capped live evaluation across a five-case benchmark suite using `nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B` via Nebius Token Factory. The benchmark suite comprises a repeat of the bundled `01_buggy_shop` pricing demo bug plus four additional Python/pytest benchmark bugs:
 
 | Task ID | Benchmark Case | Domain & Bug Archetype | RECON Verdict | Independent Oracle | API Calls | Reported Tokens (In / Out) |
 |---|---|---|---|---|---|---|
-| `01_buggy_shop` | Pricing Bulk Threshold | Pricing & Billing: boundary check (`>` vs `>=`) | `VERIFIED` | ✅ **PASS** | 2 / 2 | 1,724 / 1,576 |
+| `01_buggy_shop` | Pricing Bulk Threshold (repeat of demo) | Pricing & Billing: boundary check (`>` vs `>=`; repeats demo bug) | `VERIFIED` | ✅ **PASS** | 2 / 2 | 1,724 / 1,576 |
 | `02_semver` | Semantic Version Sorting | Developer Tooling: string vs integer sorting (`"10"` vs `"9"`) | `VERIFIED` | ✅ **PASS** | 2 / 2 | 2,009 / 1,242 |
 | `03_token_bucket` | Token Bucket Rate Limiter | Systems & Networking: unbounded idle token accumulation (missing capacity clamp) | `ERROR` | ⚪ **N/A** (no patch) | 1 / 2 | *Unavailable (truncated)* |
 | `04_slugify` | URL Slug Formatter | Web & Text: trailing delimiter leak (`max_len=12`) | `ERROR` | ⚪ **N/A** (no patch) | 2 / 2 | 712 / 821 |
 | `05_tax_calc` | Progressive Tax Calculator | Finance & Payroll: non-marginal tier bracket math | `VERIFIED` | ✅ **PASS** | 2 / 2 | 2,369 / 1,579 |
 
-* **Empirical Outcomes**: **3/5 cases were VERIFIED** and independently passed external ground-truth oracles on clean project copies. **2/5 cases safely halted in ERROR** before generating a patch: `03_token_bucket` cleanly aborted when reproduction test construction reached the `max_tokens=1500` output ceiling, and `04_slugify` cleanly aborted when the model returned an empty patch payload.
+* **Empirical Outcomes**: Overall, **3/5 cases were VERIFIED** (including the repeated `01_buggy_shop` demo case) and independently passed external ground-truth oracles on clean project copies. Among the **four additional cases**, **2 were VERIFIED** (`02_semver`, `05_tax_calc`) and **2 safely halted in ERROR** before generating a patch: `03_token_bucket` cleanly aborted when reproduction test construction reached the `max_tokens=1500` output ceiling, and `04_slugify` cleanly aborted when the model returned an empty patch payload.
 * **Cost & Safety Controls**: The live evaluation used **9 API requests** total (strictly within the 10-call aggregate cap). Aggregate **reported token usage** across completed requests was **6,814 prompt tokens** and **5,218 completion tokens** (excluding `03_token_bucket`, whose truncated request did not return a usage payload; exact consumption for that call is unavailable). The evaluation ran sequentially with zero automatic retries.
-* **Scope & Methodology**: These results reflect five small, curated benchmark examples evaluated under strict two-call caps, not a broad statistical reliability or success-rate claim. Passing tests remain empirical evidence of a fix rather than proof of correctness. See [`docs/multi_bug_evaluation.md`](docs/multi_bug_evaluation.md) for detailed case breakdowns and methodology notes.
+* **Scope & Methodology**: These results reflect five small, curated benchmark examples (one repeated demo bug and four additional cases) evaluated under strict two-call caps, not a broad statistical reliability or success-rate claim. Passing tests remain empirical evidence of a fix rather than proof of correctness. See [`docs/multi_bug_evaluation.md`](docs/multi_bug_evaluation.md) for detailed case breakdowns and methodology notes.
 
 ---
 
