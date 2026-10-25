@@ -82,6 +82,20 @@ BENCHMARK_TASKS = [
     },
 ]
 
+FOLLOWUP_VARIANTS = [
+    {
+        "id": "03_token_bucket_deterministic",
+        "name": "Token Bucket Rate Limiter (Deterministic current_time Variant)",
+        "domain": "Systems & Networking",
+        "bug_type": "Unbounded State Accumulation",
+        "project_dir": PROJECTS_DIR / "03_token_bucket",
+        "bug_report": PROJECTS_DIR / "03_token_bucket" / "bug_report_deterministic_variant.md",
+        "oracle_test": ORACLES_DIR / "03_token_bucket" / "test_oracle.py",
+        "reference_repro": PROJECTS_DIR / "03_token_bucket" / "repro_test_deterministic_variant.py",
+        "note": "Follow-up variant: uses explicit current_time parameter to ensure deterministic, concise reproduction.",
+    },
+]
+
 MAX_CALLS_PER_TASK = 2
 MAX_TOTAL_AGGREGATE_CALLS = 10
 
@@ -257,6 +271,46 @@ def check_offline_baseline_and_oracles() -> int:
     print(f"  * All oracles fail with real test assertions & 0 setup/collection errors: {all(r['oracle_fails_cleanly'] for r in results)}")
     print(f"  * Environment scrubbing active: NEBIUS_API_KEY and caller secrets excluded.")
     print("-" * 76)
+
+    if FOLLOWUP_VARIANTS:
+        print()
+        print("Checking follow-up benchmark variants:")
+        for var in FOLLOWUP_VARIANTS:
+            v_id = var["id"]
+            v_pdir = var["project_dir"]
+            v_repro = var.get("reference_repro")
+            if v_repro and v_repro.is_file():
+                scratch = Path(tempfile.mkdtemp(prefix=f"recon_offcheck_var_{v_id}_"))
+                var_xml = scratch / "variant_junit.xml"
+                try:
+                    v_code, _ = run_cmd(
+                        [
+                            sys.executable, "-m", "pytest", "-q", "--color=no",
+                            "-o", "junit_family=xunit2", f"--junitxml={var_xml}",
+                            str(v_repro),
+                        ],
+                        cwd=v_pdir,
+                        clean_env=True,
+                        scratch_dir=scratch,
+                    )
+                    v_tests = parse_junit(var_xml)
+                    v_fails = any(s == "failed" for s in v_tests.values())
+                    v_errors = any(s == "error" for s in v_tests.values())
+                    v_clean = v_code == 1 and v_fails and not v_errors
+                    v_status = "READY" if v_clean else "MISMATCH"
+                    if not v_clean:
+                        all_passed = False
+                    print(f"[{v_status}] {v_id}: {var['name']}")
+                    print(f"  - Deterministic reference repro on buggy code: {'FAILS cleanly on test assertion (0 errors)' if v_clean else 'MISMATCH'}")
+                    print()
+                finally:
+                    shutil.rmtree(scratch, ignore_errors=True)
+            else:
+                all_passed = False
+                print(f"[MISMATCH] {v_id}: {var['name']}")
+                print(f"  - Reference repro missing or invalid: {v_repro}")
+                print()
+
     return 0 if all_passed else 1
 
 

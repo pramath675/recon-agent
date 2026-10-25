@@ -4,7 +4,7 @@ Cost controls implemented here:
   * hard application-level call budget (a call is counted BEFORE it is sent)
   * max_tokens on every request, temperature 0
   * explicit HTTP timeout
-  * NO automatic retries
+  * at most one bounded retry strictly for empty model responses when budget remains (zero retries for generic errors, timeouts, or truncated responses)
   * token usage logged when the provider reports it
 
 These are application-level limits only. They are not an account-wide
@@ -25,6 +25,14 @@ from .config import Config
 
 class LLMError(Exception):
     """Any failure talking to (or understanding) the model."""
+
+
+class EmptyResponseError(LLMError):
+    """The model returned an empty content payload."""
+
+    def __init__(self, message: str, usage: Optional[Dict[str, Any]] = None):
+        super().__init__(message)
+        self.usage = usage
 
 
 class BudgetExhausted(LLMError):
@@ -81,6 +89,12 @@ class LLMClient:
     def model_name(self) -> str:
         return self.cfg.model
 
+    def _record_usage(self, usage: Optional[Dict[str, Any]]) -> None:
+        if usage:
+            self.usage.calls_with_reported_usage += 1
+            self.usage.prompt_tokens += int(usage.get("prompt_tokens", 0) or 0)
+            self.usage.completion_tokens += int(usage.get("completion_tokens", 0) or 0)
+
     def complete_json(self, stage: str, system: str, user: str) -> Dict[str, Any]:
         if self.usage.calls >= self.cfg.max_api_calls:
             raise BudgetExhausted(
@@ -91,13 +105,34 @@ class LLMClient:
         self.usage.stages.append(stage)
         try:
             text, usage = self._send(stage, system, user)
+            self._record_usage(usage)
+        except EmptyResponseError as exc:
+            self._record_usage(exc.usage)
+            # If and only if the configured API-call budget has room, retry once with reinforced prompt
+            if self.usage.calls < self.cfg.max_api_calls:
+                self.usage.errors.append(f"{stage}: {exc} (retrying once within remaining budget)")
+                self.usage.calls += 1  # count the retry request before sending
+                self.usage.stages.append(f"{stage}_retry")
+                retry_user = (
+                    f"{user}\n\n[RECON System Note: The previous model response was empty. "
+                    f"Please output a complete, valid JSON object following the schema without markdown fences or extraneous commentary.]"
+                )
+                try:
+                    text, retry_usage = self._send(stage, system, retry_user)
+                    self._record_usage(retry_usage)
+                except EmptyResponseError as retry_empty:
+                    self._record_usage(retry_empty.usage)
+                    self.usage.errors.append(f"{stage}_retry: {retry_empty}")
+                    raise
+                except LLMError as retry_exc:
+                    self.usage.errors.append(f"{stage}_retry: {retry_exc}")
+                    raise
+            else:
+                self.usage.errors.append(f"{stage}: {exc} (no budget remaining to retry)")
+                raise
         except LLMError as exc:
             self.usage.errors.append(f"{stage}: {exc}")
             raise
-        if usage:
-            self.usage.calls_with_reported_usage += 1
-            self.usage.prompt_tokens += int(usage.get("prompt_tokens", 0) or 0)
-            self.usage.completion_tokens += int(usage.get("completion_tokens", 0) or 0)
         try:
             return extract_json(text)
         except LLMError as exc:
@@ -132,11 +167,14 @@ class LLMClient:
             content = choice["message"]["content"]
         except (KeyError, IndexError, TypeError):
             raise LLMError("unexpected API response shape (no choices[0].message.content)")
-        if not content:
-            raise LLMError("model returned empty content")
+        usage = data.get("usage")
+        # Check finish_reason == "length" before classifying empty content,
+        # so truncated responses are never classified as empty or retried.
         if choice.get("finish_reason") == "length":
             raise LLMError("model output was cut off by max_tokens; raise RECON_MAX_OUTPUT_TOKENS")
-        return content, data.get("usage")
+        if not content:
+            raise EmptyResponseError("model returned empty content", usage=usage)
+        return content, usage
 
 
 class FixtureLLM(LLMClient):

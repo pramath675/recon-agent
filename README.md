@@ -172,7 +172,7 @@ Exit codes: `0` VERIFIED, `1` UNVERIFIED, `2` COULD NOT REPRODUCE, `3` ERROR.
   - Calls are counted *before* dispatching, so failed requests still consume budget.
 * **Token Controls**: `max_tokens` (`RECON_MAX_OUTPUT_TOKENS`, default 1500) is enforced per request; input is capped by `RECON_MAX_CONTEXT_CHARS` (~4 chars ≈ 1 token).
 * **Early Exit**: Generate a pytest test that should fail on the original code. If it cannot be made to fail cleanly after at most one repair attempt, RECON stops with `COULD NOT REPRODUCE` before generating a patch.
-* **No Runaway Loops**: Explicit HTTP timeouts, **zero automatic retries**, and zero autonomous agent loops. Test verdicts are computed by deterministic Python logic, never by model claims.
+* **No Runaway Loops**: Explicit HTTP timeouts, zero autonomous agent loops, and at most one bounded retry strictly for empty model responses when budget remains (zero retries for generic errors, timeouts, or truncated responses). Test verdicts are computed by deterministic Python logic, never by model claims.
 * *Notice*: These are application-level request controls, not a hard account-wide billing cap. Check your Nebius console for real account usage.
 
 ---
