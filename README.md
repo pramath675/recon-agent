@@ -105,7 +105,7 @@ python app.py
 Open **`http://127.0.0.1:7860/`** in your browser.
 * **▶ Run Good Fixture (Expected: VERIFIED)**: Steps through baseline, repro, patch, and verify stages to produce a verified unified diff.
 * **▶ Run Bad Fixture (Expected: UNVERIFIED)**: Executes a flawed patch, catches the regression on existing tests, and flags `REGRESSION DETECTED`.
-* *Offline execution*: The web UI runs entirely on local fixtures with zero external API calls or secret keys required.
+* *Offline execution*: The web UI runs entirely on bundled local fixtures with zero external API calls or secret keys required; it accepts no user code uploads and makes no live model requests.
 
 ---
 
@@ -127,7 +127,7 @@ Sample outputs reflecting these offline fixture runs on the bundled `buggy_shop`
 
 ## Demo 2 — Live Run with Nebius Token Factory & NVIDIA Model
 
-To run against a live NVIDIA model on Nebius Token Factory:
+To run RECON against a live NVIDIA model on your own Python repository or the bundled example, you will use your own Nebius Token Factory account (live requests consume your own account credits):
 
 1. Create an account and an **API key** in the [Nebius Token Factory console](https://tokenfactory.nebius.com/).
 2. Select an **NVIDIA open model** (e.g., `nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B`).
