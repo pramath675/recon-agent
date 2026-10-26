@@ -542,13 +542,14 @@ def render_status_html(status: str, extra: str = "") -> str:
         </div>
         """
     elif status == UNVERIFIED:
-        return """
+        badge_text = "TAMPERING DETECTED" if "tamper" in extra.lower() else "REGRESSION DETECTED"
+        return f"""
         <div class="status-banner status-unverified">
           <div>
             <span style="color:#ff3344; margin-right:8px;">[✖]</span>
             <span class="status-title">STATUS: UNVERIFIED</span>
           </div>
-          <span class="status-badge-pill">REGRESSION / TAMPERING DETECTED</span>
+          <span class="status-badge-pill">{badge_text}</span>
         </div>
         """
     elif status == "STAGE_RUNNING":
@@ -710,10 +711,13 @@ def run_fixture_demo(
                 repro_test = report.get("generated_test", "") or "(No reproduction test code produced)"
                 json_report = json.dumps(report, indent=2)
 
+                tampering_detected = any("tamper" in r.lower() for r in report.get("reasons", []))
+                status_extra = "tampering" if tampering_detected else ""
+
                 # Return ALL STAGES to neutral upon completion
                 yield (
                     render_pipeline_html(None),
-                    render_status_html(status),
+                    render_status_html(status, extra=status_extra),
                     reasons,
                     diff,
                     repro_test,
@@ -848,8 +852,8 @@ def create_ui() -> gr.Blocks:
         gr.HTML(
             """
             <div style="font-size: 0.75rem; color: #64748b; margin-top: 1.5rem; border-top: 1px solid #1a2332; padding-top: 0.75rem;">
-              • <strong>Secure Execution</strong>: No live external API calls are made; no API keys required. Live model runs on Nebius Token Factory are shown in the submission video.<br/>
-              • <strong>Hosting Notice</strong>: Free Hugging Face Spaces sleep after periods of inactivity. Verify your compute tier in HF account settings.<br/>
+              • <strong>Offline Browser Execution</strong>: This hosted Render demo runs only bundled offline fixtures with zero live model calls or external API keys. The submission video demonstrates this offline fixture verification workflow. To run live requests using NVIDIA Nemotron-3-Nano-30B-A3B on Nebius Token Factory, follow the CLI setup in the GitHub repository (which consumes your own account credits).<br/>
+              • <strong>Render Hosting Notice</strong>: Hosted on Render's Free tier, which spins down after 15 minutes of inactivity. If waking from cold start, please allow ~50 seconds for the service to resume.<br/>
               • <em>Passing tests are evidence that the reported behaviour was fixed and existing tests still pass. They are not a mathematical proof of correctness.</em>
             </div>
             """
